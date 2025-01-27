@@ -50,26 +50,29 @@ const userSchema = new Schema(
   { timestamps: true }
 );
 
+// Password encryption
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
 
-  // Hash the given password with 12 salt round
+  // Hash the given password with 12 salt rounds
   this.password = await bcrypt.hash(this.password, 12);
   next();
 });
 
+// Password comparision
 userSchema.methods.isCorrectPassword = async function (password) {
   // Compare passwords
   return await bcrypt.compare(password, this.password);
 };
 
+// Access token generation
 userSchema.methods.generateAccessToken = function () {
   return jwt.sign(
     {
       _id: this._id,
       email: this.email,
+      username: this.username,
       fullName: this.fullName,
-      username: this.fullName,
     },
     process.env.ACCESS_TOKEN_SECRET,
     {
@@ -78,6 +81,7 @@ userSchema.methods.generateAccessToken = function () {
   );
 };
 
+// Refresh token generation
 userSchema.methods.generateRefreshToken = async function () {
   return jwt.sign(
     {
