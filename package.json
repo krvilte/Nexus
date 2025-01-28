@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Welcome to Nexus your go-to platform for discovering, creating, and sharing videos with a vibrant community of creators and viewers!",
   "main": "index.js",
-  "type": "commonjs",
+  "type": "module",
   "scripts": {
     "dev": "nodemon src/index"
   },
