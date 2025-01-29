@@ -1,3 +1,5 @@
+import multer from "multer";
+
 // Storing files to disk temporarily
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
