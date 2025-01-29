@@ -23,7 +23,11 @@ export const registerUser = asyncHandler(async (req, res) => {
 
   // Upload files cloudinary
   const avatar = await cloudinaryUpload(avatarFilePath);
-  const coverImage = await cloudinaryUpload(coverImageFilePath);
+  const coverImage = coverImageFilePath
+    ? await cloudinaryUpload(coverImageFilePath)
+    : null;
+
+  console.log("coverImage URL", coverImage?.url);
 
   // validate avatar file
   if (!avatar) throw new ApiError(400, "Avatar image required!!");
@@ -39,7 +43,7 @@ export const registerUser = asyncHandler(async (req, res) => {
   });
 
   // Find registered User
-  const registeredUser = await User.findById(user._id).selected(
+  const registeredUser = await User.findById(user._id).select(
     "-password -refreshToken"
   );
 
@@ -49,5 +53,5 @@ export const registerUser = asyncHandler(async (req, res) => {
   // Success response
   return res
     .status(201)
-    .json(new ApiResponse(200, "User registered successfully", registerUser));
+    .json(new ApiResponse(200, "User registered successfully", registeredUser));
 });
