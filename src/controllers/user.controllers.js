@@ -27,8 +27,6 @@ export const registerUser = asyncHandler(async (req, res) => {
     ? await cloudinaryUpload(coverImageFilePath)
     : null;
 
-  console.log("coverImage URL", coverImage?.url);
-
   // validate avatar file
   if (!avatar) throw new ApiError(400, "Avatar image required!!");
 
