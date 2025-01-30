@@ -58,7 +58,7 @@ export const loginUser = asyncHandler(async (req, res) => {
   const { username, email, password } = req.body;
 
   // Validate username and email
-  if (!username || !email)
+  if (!username && !email)
     throw new ApiError(400, "Username or email is required!!");
 
   // Find and validate existing user
@@ -92,11 +92,11 @@ export const loginUser = asyncHandler(async (req, res) => {
     .cookie("accessToken", accessToken, options)
     .cookie("refreshToken", refreshToken, options)
     .json(
-      new ApiResponse(
-        200,
-        { user: loggedInUser, accessToken, refreshToken },
-        "User logged in successfully!!"
-      )
+      new ApiResponse(200, "User logged in successfully!!", {
+        user: loggedInUser,
+        accessToken,
+        refreshToken,
+      })
     );
 });
 
@@ -120,5 +120,5 @@ export const logoutUser = asyncHandler(async (req, res) => {
     .status(200)
     .clearCookie("accessToken", options)
     .clearCookie("refreshToken", options)
-    .json(200, {}, "Logout successful!");
+    .json(new ApiResponse(200, {}, "Logout successfully!"));
 });
