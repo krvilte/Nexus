@@ -3,6 +3,7 @@ import ApiError from "../utils/apiError.js";
 import ApiResponse from "../utils/apiResponse.js";
 import cloudinaryUpload from "../services/cloudinary.service.js";
 import User from "../models/user.model.js";
+import jwt from "jsonwebtoken";
 
 export const registerUser = asyncHandler(async (req, res) => {
   const { fullName, username, email, password } = req.body;
@@ -75,7 +76,6 @@ export const loginUser = asyncHandler(async (req, res) => {
 
   existingUser.refreshToken = refreshToken;
   await existingUser.save({ validateBeforeSave: false });
-  console.log("Existing User: ", existingUser);
 
   // Send cookies
   const loggedInUser = await User.findOne(existingUser._id).select(
@@ -121,4 +121,44 @@ export const logoutUser = asyncHandler(async (req, res) => {
     .clearCookie("accessToken", options)
     .clearCookie("refreshToken", options)
     .json(new ApiResponse(200, {}, "Logout successfully!"));
+});
+
+export const refreshAccessToken = asyncHandler(async (req, res) => {
+  try {
+    const incomingRefreshToken = cookies?.refreshToken || req.body.refreshToken;
+
+    if (!incomingRefreshToken) throw new ApiError(401, "Unauthorized request!");
+
+    const decryptedToken = jwt.verify(
+      incomingRefreshToken,
+      process.env.REFRESH_TOKEN_SECRET
+    );
+
+    const existingUser = User.findById(decryptedToken?._id);
+    if (!existingUser) throw new ApiError(401, "Invalid refresh token!");
+
+    if (incomingRefreshToken !== decryptedToken)
+      throw new ApiError(401, "Expired refresh token!");
+
+    const newAccessToken = await existingUser.generateAccessToken();
+    const refreshToken = await existingUser.generateRefreshToken();
+
+    const options = {
+      httpOnly: true,
+      secure: true,
+    };
+
+    return res
+      .status(200)
+      .cookie("accessToken", newAccessToken, options)
+      .cookie("refreshToken", refreshToken, options)
+      .json(
+        new ApiResponse(200, "Access token renewed!", {
+          accessToken: newAccessToken,
+          refreshToken: refreshToken,
+        })
+      );
+  } catch (error) {
+    throw new ApiError(401, error?.message || "Invalid refresh token");
+  }
 });
