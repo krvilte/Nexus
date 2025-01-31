@@ -182,3 +182,36 @@ export const changePassword = asyncHandler(async (req, res) => {
 
   res.status(200).json(new ApiResponse(200, "Password changed successfully"));
 });
+
+export const currentUser = asyncHandler(async (req, res) => {
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "Current user found", req.user));
+});
+
+export const updateAccountDetails = asyncHandler(async (req, res) => {
+  const { fullName, email, username } = req.body;
+
+  // Validate incoming new data
+  if (!fullName || !email || !username)
+    throw new ApiError(400, "Name, email or username required");
+
+  // Check if username exists
+  const existingUsername = User.findOne({ username });
+  if (existingUsername) throw new ApiError(400, "Username already exists");
+
+  // Find and update account details
+  const user = await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      $set: {
+        fullName: fullName,
+        email: email,
+        username: username,
+      },
+    },
+    { new: true }
+  ).select("-password");
+
+  res.status(200).json(new ApiResponse(200, "Account details updated", user));
+});
