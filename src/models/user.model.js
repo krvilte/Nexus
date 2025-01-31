@@ -24,12 +24,10 @@ const userSchema = new Schema(
       lowercase: true,
       trim: true,
     },
-
     password: {
       type: String,
       required: [true, "Password is required"],
     },
-
     avatar: {
       type: String,
       required: true,
