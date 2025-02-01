@@ -1,5 +1,5 @@
 import { v2 as cloudinary } from "cloudinary";
-import fs from "fs";
+import cleanupTempFile from "../utils/cleanupTempFile.js";
 
 // Configuration
 cloudinary.config({
@@ -9,7 +9,7 @@ cloudinary.config({
 });
 
 // File upload
-const cloudinaryUpload = async (filePath) => {
+export const cloudinaryUpload = async (filePath) => {
   try {
     if (!filePath) return null;
 
@@ -17,12 +17,25 @@ const cloudinaryUpload = async (filePath) => {
       resource_type: "auto",
     });
 
-    fs.unlinkSync(filePath);
+    cleanupTempFile(filePath);
     return response;
   } catch (error) {
-    fs.unlinkSync(filePath);
+    cleanupTempFile(filePath);
     return null;
   }
 };
 
-export default cloudinaryUpload;
+export const cloudinaryFileDelete = async (id) => {
+  try {
+    if (!id) {
+      return null;
+    }
+
+    const response = await cloudinary.uploader.destroy(id);
+    console.log("Cloudinary file deleted:", response);
+    return response;
+  } catch (error) {
+    console.error("Error deleting cloudinary file:", error);
+    return null;
+  }
+};
